@@ -1,0 +1,122 @@
+name: SettleFlow CI / CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  # -----------------------------------------------------------
+  # 1. Backend CI (Spring Boot 3.3, Java 17, Maven)
+  # -----------------------------------------------------------
+  backend-build:
+    name: Backend Build & Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Grant execute permission for Maven Wrapper
+        run: chmod +x mvnw || true
+
+      - name: Run Spring Boot Tests & Build
+        run: mvn clean test --batch-mode
+
+  # -----------------------------------------------------------
+  # 2. Frontend CI (Next.js 14, TypeScript, ESLint)
+  # -----------------------------------------------------------
+  frontend-build:
+    name: Frontend Lint, Typecheck & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Run TypeScript Typecheck
+        run: npx tsc --noEmit
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Build Next.js Production Bundle
+        run: npm run build
+        env:
+          NEXT_PUBLIC_BACKEND_URL: http://localhost:8080
+
+  # -----------------------------------------------------------
+  # 3. Mock PSP Microservices Validation
+  # -----------------------------------------------------------
+  psp-mocks-check:
+    name: Mock PSP Microservices Health
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./psp-mocks
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Start Mock PSPs in Background
+        run: |
+          node server.js &
+          sleep 3
+
+      - name: Test PSP Health Endpoints
+        run: |
+          curl --fail http://localhost:8081/health || exit 1
+          curl --fail http://localhost:8082/health || exit 1
+          curl --fail http://localhost:8083/health || exit 1
+
+  # -----------------------------------------------------------
+  # 4. Reconciliation Script Validation
+  # -----------------------------------------------------------
+  reconciliation-check:
+    name: Reconciliation Engine Worker
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./reconciliation
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Reconciliation Audit
+        run: python reconcile.py
