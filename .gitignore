@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+psp-mocks/node_modules/
+
+# Next.js Build
+frontend/.next/
+frontend/out/
+.next/
+
+# Java & Maven
+backend/target/
+target/
+*.class
+.mvn/
+backend/.mvn/
+backend/apache-maven-*/
+
+# Logs & Temporary Files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+reconciliation/reconciliation_report.json
+
+# Environment variables
+.env*.local
+.env
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

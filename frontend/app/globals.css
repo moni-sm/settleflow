@@ -1,0 +1,271 @@
+:root {
+  --surface-0: #f3f2ed;
+  --surface-1: #f1efe8;
+  --surface-2: #ffffff;
+  --surface-3: #e8e6dd;
+  --text-primary: #1a1a18;
+  --text-secondary: #5f5e5a;
+  --text-muted: #888780;
+  --border: #e3e1d8;
+  --radius: 10px;
+  --accent: #2c6e49;
+  --accent-light: #eaf3de;
+  --bg-success: #eaf3de; --text-success: #27500a;
+  --bg-danger: #fcebeb;  --text-danger: #791f1f;
+  --bg-warning: #faeeda; --text-warning: #633806;
+  --bg-info: #e6f0fa;    --text-info: #104377;
+  --bg-purple: #f3e8fa;  --text-purple: #5c1d80;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-0: #121210;
+    --surface-1: #1c1c19;
+    --surface-2: #201f1c;
+    --surface-3: #2a2925;
+    --text-primary: #ece9e0;
+    --text-secondary: #b4b2a9;
+    --text-muted: #888780;
+    --border: #33322d;
+    --accent: #6fbf8b;
+    --accent-light: #1a2e0e;
+    --bg-success: #1a2e0e; --text-success: #97c459;
+    --bg-danger: #3a1414;  --text-danger: #f09595;
+    --bg-warning: #3a2a0a; --text-warning: #efaf27;
+    --bg-info: #11253a;    --text-info: #79b8f0;
+    --bg-purple: #2f193c;  --text-purple: #d896f5;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  font-size: 13px;
+  background: transparent;
+  border: 0.5px solid var(--border);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+button:hover {
+  background: var(--surface-1);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-weight: 500;
+}
+
+button.primary:hover {
+  opacity: 0.92;
+  background: var(--accent);
+}
+
+button.danger {
+  border-color: var(--text-danger);
+  color: var(--text-danger);
+}
+
+button.danger:hover {
+  background: var(--bg-danger);
+}
+
+input, select, textarea {
+  font-family: inherit;
+  background: var(--surface-1);
+  border: 0.5px solid var(--border);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.85rem;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Spinner Animation */
+.spinner {
+  width: 30px;
+  height: 30px;
+  margin: 0 auto 1rem;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Badges */
+.badge {
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 2.5px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.badge.success { background: var(--bg-success); color: var(--text-success); }
+.badge.danger  { background: var(--bg-danger);  color: var(--text-danger); }
+.badge.warning { background: var(--bg-warning); color: var(--text-warning); }
+.badge.info    { background: var(--bg-info);    color: var(--text-info); }
+.badge.purple  { background: var(--bg-purple);  color: var(--text-purple); }
+.badge.neutral { background: var(--surface-1);  color: var(--text-secondary); border: 0.5px solid var(--border); }
+
+/* Switch Toggle Component */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 22px;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--surface-3);
+  transition: 0.2s;
+  border-radius: 22px;
+  border: 0.5px solid var(--border);
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.2s;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+input:checked + .toggle-slider {
+  background-color: var(--accent);
+}
+input:checked + .toggle-slider:before {
+  transform: translateX(16px);
+}
+
+/* Slide Drawer Overlay */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 100;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.drawer-panel {
+  width: 100%;
+  max-width: 520px;
+  height: 100%;
+  background: var(--surface-2);
+  border-left: 0.5px solid var(--border);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Modal Box */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  z-index: 110;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.2);
+  animation: scaleUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
