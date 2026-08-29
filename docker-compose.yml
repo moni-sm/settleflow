@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # -----------------------------------------------------------
+  # 1. PostgreSQL Database
+  # -----------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: settleflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: settleflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d settleflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - settleflow-net
+
+  # -----------------------------------------------------------
+  # 2. Mock PSP Microservices (Alpha: 8081, Beta: 8082, Gamma: 8083)
+  # -----------------------------------------------------------
+  psp-mocks:
+    build:
+      context: ./psp-mocks
+      dockerfile: Dockerfile
+    container_name: settleflow-psp-mocks
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+      - "8082:8082"
+      - "8083:8083"
+    networks:
+      - settleflow-net
+
+  # -----------------------------------------------------------
+  # 3. SettleFlow Spring Boot Backend
+  # -----------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: settleflow-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      psp-mocks:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/settleflow
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password123
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      CORS_ALLOWED_ORIGIN: http://localhost:3000
+    ports:
+      - "8080:8080"
+    networks:
+      - settleflow-net
+
+  # -----------------------------------------------------------
+  # 4. SettleFlow Next.js Frontend Dashboard & Checkout
+  # -----------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: settleflow-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+    networks:
+      - settleflow-net
+
+  # -----------------------------------------------------------
+  # 5. Settlement Reconciliation Audit Worker
+  # -----------------------------------------------------------
+  reconciliation:
+    build:
+      context: ./reconciliation
+      dockerfile: Dockerfile
+    container_name: settleflow-recon
+    depends_on:
+      - backend
+      - psp-mocks
+    environment:
+      BACKEND_URL: http://backend:8080
+    networks:
+      - settleflow-net
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  settleflow-net:
+    driver: bridge

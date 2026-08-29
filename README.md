@@ -30,15 +30,15 @@ flowchart TD
 ```
 
 ### System Components:
-1. **Frontend (`frontend/`)**: Next.js 14 (App Router) + TypeScript + Tailwind CSS providing:
+1. **Frontend (`frontend/`)**: Next.js 14 (App Router) + TypeScript + Tailwind CSS
    - **Checkout Portal (`/checkout`)**: Multi-currency deposit & withdrawal flows with live status tracking.
    - **Operations Dashboard (`/dashboard`)**: Real-time transaction monitoring, manual circuit breaker overrides (kill switches), routing rules engine, player KYC limits, audit logging, and automated reconciliation auditor.
-2. **Backend Orchestrator (`backend/`)**: Spring Boot 3.3 + Java 17 + JPA (H2 / PostgreSQL):
+2. **Backend Orchestrator (`backend/`)**: Spring Boot 3.3 + Java 17 + JPA (PostgreSQL / H2)
    - **State Machine**: Enforces strict transitions (`PENDING` $\to$ `ROUTING` $\to$ `PROCESSING` $\to$ `SETTLED` / `RETRYING` $\to$ `FAILED` / `REFUNDED`).
    - **Resilience4j Circuit Breakers**: Configured per PSP instance (`psp-alpha`, `psp-beta`, `psp-gamma`). Fast-fails degraded PSPs and probes recovery in `HALF_OPEN` state.
    - **Circuit-Aware Routing Router**: Matches transaction currency, amount, and traffic weights while dynamically bypassing unhealthy PSPs.
    - **REST APIs**: Full CRUD for routing rules, circuit controls, transactions, KYC tiers, and reconciliation runs.
-3. **Mock PSP Microservices (`psp-mocks/`)**: Standalone lightweight Node.js servers:
+3. **Mock PSP Microservices (`psp-mocks/`)**: Standalone lightweight Node.js servers
    - **PSP Alpha (`port: 8081`)**: Fast tier-1 provider (5% failure rate, ~120ms latency).
    - **PSP Beta (`port: 8082`)**: Unstable provider (60% failure rate, ~750ms latency) for demoing circuit trip & failover.
    - **PSP Gamma (`port: 8083`)**: Multi-currency regional provider (15% failure rate, ~250ms latency).
@@ -49,43 +49,61 @@ flowchart TD
 
 ---
 
-## 🚀 Quick Start Guide (Native / No Docker)
+## 🐳 Docker & Docker Compose Setup
 
-### Prerequisites
-- **Node.js** 18+ and **npm**
-- **Java 17+** (JDK)
-- **Python 3.9+** (optional, for standalone reconciliation CLI)
+Run the full SettleFlow stack with a single command:
 
-### 1. Start Mock PSP Microservices
 ```bash
+docker compose up --build
+```
+
+This starts:
+- `settleflow-postgres`: PostgreSQL 16 on `localhost:5432`
+- `settleflow-psp-mocks`: Mock PSP microservices on ports `8081`, `8082`, `8083`
+- `settleflow-backend`: Spring Boot 3.3 Backend API on `localhost:8080`
+- `settleflow-frontend`: Next.js 14 Dashboard & Checkout on `http://localhost:3000`
+- `settleflow-recon`: Automated settlement audit worker
+
+---
+
+## ☸️ Kubernetes Deployment (`k8s/`)
+
+Deploy all microservices to your Kubernetes cluster with Kustomize:
+
+```bash
+# 1. Create namespace, configs, PVCs, services, deployments, and ingress
+kubectl apply -k k8s/
+
+# 2. Check deployment status
+kubectl get pods -n settleflow
+
+# 3. Port-forward frontend & backend for local access
+kubectl port-forward svc/frontend-service 3000:3000 -n settleflow
+kubectl port-forward svc/backend-service 8080:8080 -n settleflow
+```
+
+---
+
+## 💻 Native Local Run (No Docker)
+
+```bash
+# Terminal 1 — Start Mock PSP Microservices
 cd psp-mocks
 node server.js
-```
-*Listens on ports 8081, 8082, and 8083.*
 
-### 2. Start Spring Boot Backend
-```bash
+# Terminal 2 — Start Spring Boot Backend
 cd backend
-# Windows:
-.\mvnw.cmd spring-boot:run
-# macOS/Linux:
-./mvnw spring-boot:run
-```
-*Backend runs on `http://localhost:8080` (H2 database console available at `http://localhost:8080/h2-console`).*
+.\mvnw.cmd spring-boot:run   # Windows
+./mvnw spring-boot:run       # macOS / Linux
 
-### 3. Start Next.js Frontend
-```bash
+# Terminal 3 — Start Next.js Frontend
 cd frontend
 npm run dev
-```
-*Access UI at `http://localhost:3000` (Demo logins: `ops@settleflow.dev` / `player@settleflow.dev` with password `demo1234`).*
 
-### 4. Run Reconciliation Audit
-```bash
+# Terminal 4 — Run Reconciliation Audit
 cd reconciliation
 python reconcile.py
 ```
-*Generates formatted terminal summary and `reconciliation_report.json`.*
 
 ---
 
