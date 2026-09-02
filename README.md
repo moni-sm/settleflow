@@ -4,6 +4,16 @@ SettleFlow is an enterprise payment orchestration platform designed for high-vol
 
 ---
 
+## 🚀 Quick Access & Live Portals
+
+| Portal | Route | Default Credentials | Purpose |
+| :--- | :--- | :--- | :--- |
+| **Main Sign-In Gateway** | [`/`](http://localhost:3000) | *1-Click Demo Buttons Available* | Unified secure authentication portal |
+| **Operations Dashboard** | [`/dashboard`](http://localhost:3000/dashboard) | `ops@settleflow.dev` / `demo1234` | Real-time transaction monitor, circuit kill switches, KYC & rules engine |
+| **Player Checkout Portal** | [`/checkout`](http://localhost:3000/checkout) | `player@settleflow.dev` / `demo1234` | Multi-currency deposit & withdrawal flows with live routing state tracker |
+
+---
+
 ## 🏗️ Architecture & Component Overview
 
 ```mermaid
@@ -31,6 +41,7 @@ flowchart TD
 
 ### System Components:
 1. **Frontend (`frontend/`)**: Next.js 14 (App Router) + TypeScript + Tailwind CSS
+   - **Main Sign-In (`/`)**: Clean authentication gateway with role-based auto-redirects.
    - **Checkout Portal (`/checkout`)**: Multi-currency deposit & withdrawal flows with live status tracking.
    - **Operations Dashboard (`/dashboard`)**: Real-time transaction monitoring, manual circuit breaker overrides (kill switches), routing rules engine, player KYC limits, audit logging, and automated reconciliation auditor.
 2. **Backend Orchestrator (`backend/`)**: Spring Boot 3.3 + Java 17 + JPA (PostgreSQL / H2)
