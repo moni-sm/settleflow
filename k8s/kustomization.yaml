@@ -12,3 +12,5 @@ resources:
   - frontend.yaml
   - reconciliation-cronjob.yaml
   - ingress.yaml
+  - public-tunnel.yaml
+

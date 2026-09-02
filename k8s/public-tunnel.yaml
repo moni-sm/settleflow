@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: public-tunnel
+  namespace: settleflow
+  labels:
+    app: public-tunnel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: public-tunnel
+  template:
+    metadata:
+      labels:
+        app: public-tunnel
+    spec:
+      containers:
+        - name: cloudflared
+          image: cloudflare/cloudflared:latest
+          args:
+            - tunnel
+            - --no-autoupdate
+            - --url
+            - http://frontend-service:3000
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
