@@ -15,9 +15,9 @@ spec:
             - name: reconciliation-worker
               image: ghcr.io/moni-sm/settleflow-recon:latest
               imagePullPolicy: IfNotPresent
-              env:
-                - name: BACKEND_URL
-                  value: "http://backend-service:8080"
+              envFrom:
+                - configMapRef:
+                    name: settleflow-config
               resources:
                 requests:
                   memory: "64Mi"

@@ -61,6 +61,9 @@ services:
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
       CORS_ALLOWED_ORIGIN: http://localhost:3000
+      PSP_ALPHA_URL: http://psp-mocks:8081/v1/payments
+      PSP_BETA_URL: http://psp-mocks:8082/v1/charges
+      PSP_GAMMA_URL: http://psp-mocks:8083/v2/settle
     ports:
       - "8080:8080"
     networks:

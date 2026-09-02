@@ -4,17 +4,18 @@ SettleFlow Standalone Settlement Reconciliation Worker
 Audits internal database transaction records against external PSP settlement reports.
 """
 
+import os
 import sys
 import json
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
 
-BACKEND_URL = "http://localhost:8080"
+BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8080")
 PSP_URLS = {
-    "psp-alpha": "http://localhost:8081/settlement-report",
-    "psp-beta": "http://localhost:8082/settlement-report",
-    "psp-gamma": "http://localhost:8083/settlement-report"
+    "psp-alpha": os.environ.get("PSP_ALPHA_RECON_URL", os.environ.get("PSP_ALPHA_URL", "http://localhost:8081")).replace("/v1/payments", "") + "/settlement-report",
+    "psp-beta": os.environ.get("PSP_BETA_RECON_URL", os.environ.get("PSP_BETA_URL", "http://localhost:8082")).replace("/v1/charges", "") + "/settlement-report",
+    "psp-gamma": os.environ.get("PSP_GAMMA_RECON_URL", os.environ.get("PSP_GAMMA_URL", "http://localhost:8083")).replace("/v2/settle", "") + "/settlement-report"
 }
 
 def fetch_json(url):

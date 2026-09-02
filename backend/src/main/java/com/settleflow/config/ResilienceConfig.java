@@ -27,21 +27,30 @@ public class ResilienceConfig {
         return CircuitBreakerRegistry.of(customConfig);
     }
 
+    @org.springframework.beans.factory.annotation.Value("${psp.alpha.url:http://localhost:8081/v1/payments}")
+    private String pspAlphaUrl;
+
+    @org.springframework.beans.factory.annotation.Value("${psp.beta.url:http://localhost:8082/v1/charges}")
+    private String pspBetaUrl;
+
+    @org.springframework.beans.factory.annotation.Value("${psp.gamma.url:http://localhost:8083/v2/settle}")
+    private String pspGammaUrl;
+
     @Bean(name = "pspAlphaClient")
     public PspClient pspAlphaClient(CircuitBreakerRegistry registry) {
         CircuitBreaker cb = registry.circuitBreaker("psp-alpha");
-        return new HttpPspClient("psp-alpha", "PSP Alpha", "http://localhost:8081/v1/payments", cb, 0.05);
+        return new HttpPspClient("psp-alpha", "PSP Alpha", pspAlphaUrl, cb, 0.05);
     }
 
     @Bean(name = "pspBetaClient")
     public PspClient pspBetaClient(CircuitBreakerRegistry registry) {
         CircuitBreaker cb = registry.circuitBreaker("psp-beta");
-        return new HttpPspClient("psp-beta", "PSP Beta", "http://localhost:8082/v1/charges", cb, 0.60);
+        return new HttpPspClient("psp-beta", "PSP Beta", pspBetaUrl, cb, 0.60);
     }
 
     @Bean(name = "pspGammaClient")
     public PspClient pspGammaClient(CircuitBreakerRegistry registry) {
         CircuitBreaker cb = registry.circuitBreaker("psp-gamma");
-        return new HttpPspClient("psp-gamma", "PSP Gamma", "http://localhost:8083/v2/settle", cb, 0.15);
+        return new HttpPspClient("psp-gamma", "PSP Gamma", pspGammaUrl, cb, 0.15);
     }
 }
