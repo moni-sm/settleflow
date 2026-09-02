@@ -137,5 +137,12 @@ kubectl port-forward svc/backend-service 8080:8080 -n settleflow
 
 ---
 
+## 📬 Contact & Author
+
+- **Email**: [monikasm2019@gmail.com](mailto:monikasm2019@gmail.com)
+- **GitHub**: [@moni-sm](https://github.com/moni-sm)
+
+---
+
 ## 🛡️ License
 MIT License
