@@ -7,7 +7,9 @@
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3-brightgreen.svg?logo=springboot)](https://spring.io/projects/spring-boot)
 [![Next.js](https://img.shields.io/badge/Next.js-14_App_Router-black.svg?logo=next.js)](https://nextjs.org/)
 
-> 🚀 **Live Application**: [SettleFlow](https://earliest-dad-against-consistency.trycloudflare.com/) *(Preloaded with 1-click demo accounts for Operations & Player Checkout)*
+> 🚀 **Live Production Application**: [https://settle-flow.duckdns.org](https://settle-flow.duckdns.org) *(Preloaded with 1-click demo accounts for Operations & Player Checkout)*
+> 
+> 🛡️ **AWS Cloud Infrastructure**: Deployed on **AWS EC2** with **Docker & Kubernetes**, Nginx Reverse Proxy, and Let's Encrypt SSL/TLS.
 
 ---
 
@@ -19,7 +21,7 @@ It solves core fintech operational challenges:
 - **Zero Payment Outages**: Dynamically routes traffic away from failing Payment Service Providers (PSPs) using real-time **Resilience4j Circuit Breakers**.
 - **Maximized Authorization Rates**: Enforces priority rules, currency matching, and automatic multi-tier failovers.
 - **Financial Compliance & Automated Reconciliation**: Continuously cross-audits internal transactional ledgers against external PSP settlement reports to flag and resolve discrepancies (`AMOUNT_MISMATCH`, `STATUS_MISMATCH`, `MISSING_IN_PSP`).
-- **Cloud-Native Resilience**: Fully containerized and orchestratable on **Kubernetes (K8s)** and **Docker Compose** with end-to-end CI/CD.
+- **Cloud-Native Resilience**: Fully containerized and orchestratable on **Kubernetes (K8s)**, **Docker Compose**, and **AWS EC2** with automated SSL/TLS provisioning.
 
 ---
 
@@ -101,20 +103,32 @@ flowchart TD
 
 ## 💻 Local Quickstart
 
-### Option 1: Docker Compose (Full Stack)
-```bash
-docker compose up --build
-```
-- **Frontend UI**: `http://localhost:3000`
-- **Backend API**: `http://localhost:8080/api/transactions`
-- **PSP Mocks**: Ports `8081`, `8082`, `8083`
-
-### Option 2: Kubernetes (K8s)
-```bash
-kubectl apply -k k8s/
-kubectl port-forward svc/frontend-service 3000:3000 -n settleflow
-kubectl port-forward svc/backend-service 8080:8080 -n settleflow
-```
+## 💻 Deployment Options
+ 
+ ### Option 1: AWS EC2 Cloud Production (Live with HTTPS SSL)
+ ```bash
+ # 1. Launch EC2 (Ubuntu 24.04 / 22.04 LTS)
+ # 2. Run automated stack deployment
+ chmod +x aws-ec2-setup.sh && ./aws-ec2-setup.sh
+ 
+ # 3. Setup Nginx Reverse Proxy & Let's Encrypt SSL
+ chmod +x setup-ssl.sh && ./setup-ssl.sh
+ ```
+ - **Live URL**: `https://settle-flow.duckdns.org`
+ 
+ ### Option 2: Docker Compose (Local / Single VM)
+ ```bash
+ docker compose up --build -d
+ ```
+ - **Frontend UI**: `http://localhost:3000`
+ - **Backend API**: `http://localhost:8080/api/transactions`
+ 
+ ### Option 3: Kubernetes Cluster (K8s Kustomize)
+ ```bash
+ kubectl apply -k k8s/
+ kubectl port-forward svc/frontend-service 3000:3000 -n settleflow
+ kubectl port-forward svc/backend-service 8080:8080 -n settleflow
+ ```
 
 ---
 
