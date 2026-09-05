@@ -33,12 +33,6 @@ if (-not $DeployOnly) {
     Write-Host "  --> Building Frontend (ghcr.io/moni-sm/settleflow-frontend:latest)..." -ForegroundColor Gray
     docker build -t ghcr.io/moni-sm/settleflow-frontend:latest ./frontend
 
-    Write-Host "  --> Building Mock PSPs (ghcr.io/moni-sm/settleflow-psp-mocks:latest)..." -ForegroundColor Gray
-    docker build -t ghcr.io/moni-sm/settleflow-psp-mocks:latest ./psp-mocks
-
-    Write-Host "  --> Building Recon Worker (ghcr.io/moni-sm/settleflow-recon:latest)..." -ForegroundColor Gray
-    docker build -t ghcr.io/moni-sm/settleflow-recon:latest ./reconciliation
-
     Write-Host "`nAll Docker images built successfully!" -ForegroundColor Green
 }
 
@@ -53,7 +47,6 @@ kubectl apply -k k8s/
 
 Write-Host "`n[3/3] Waiting for deployments to become ready..." -ForegroundColor Yellow
 kubectl rollout status deployment/postgres-deployment -n settleflow --timeout=120s
-kubectl rollout status deployment/psp-mocks-deployment -n settleflow --timeout=120s
 kubectl rollout status deployment/backend-deployment -n settleflow --timeout=180s
 kubectl rollout status deployment/frontend-deployment -n settleflow --timeout=180s
 kubectl rollout status deployment/public-tunnel -n settleflow --timeout=90s

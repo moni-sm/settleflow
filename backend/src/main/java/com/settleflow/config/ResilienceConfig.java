@@ -1,7 +1,8 @@
 package com.settleflow.config;
 
+import com.settleflow.psp.EmbeddedPspEngine;
 import com.settleflow.psp.PspClient;
-import com.settleflow.psp.impl.HttpPspClient;
+import com.settleflow.psp.impl.EmbeddedPspClient;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -27,30 +28,22 @@ public class ResilienceConfig {
         return CircuitBreakerRegistry.of(customConfig);
     }
 
-    @org.springframework.beans.factory.annotation.Value("${psp.alpha.url:http://localhost:8081/v1/payments}")
-    private String pspAlphaUrl;
-
-    @org.springframework.beans.factory.annotation.Value("${psp.beta.url:http://localhost:8082/v1/charges}")
-    private String pspBetaUrl;
-
-    @org.springframework.beans.factory.annotation.Value("${psp.gamma.url:http://localhost:8083/v2/settle}")
-    private String pspGammaUrl;
-
     @Bean(name = "pspAlphaClient")
-    public PspClient pspAlphaClient(CircuitBreakerRegistry registry) {
+    public PspClient pspAlphaClient(EmbeddedPspEngine engine, CircuitBreakerRegistry registry) {
         CircuitBreaker cb = registry.circuitBreaker("psp-alpha");
-        return new HttpPspClient("psp-alpha", "PSP Alpha", pspAlphaUrl, cb, 0.05);
+        return new EmbeddedPspClient("psp-alpha", "PSP Alpha", engine, cb);
     }
 
     @Bean(name = "pspBetaClient")
-    public PspClient pspBetaClient(CircuitBreakerRegistry registry) {
+    public PspClient pspBetaClient(EmbeddedPspEngine engine, CircuitBreakerRegistry registry) {
         CircuitBreaker cb = registry.circuitBreaker("psp-beta");
-        return new HttpPspClient("psp-beta", "PSP Beta", pspBetaUrl, cb, 0.60);
+        return new EmbeddedPspClient("psp-beta", "PSP Beta", engine, cb);
     }
 
     @Bean(name = "pspGammaClient")
-    public PspClient pspGammaClient(CircuitBreakerRegistry registry) {
+    public PspClient pspGammaClient(EmbeddedPspEngine engine, CircuitBreakerRegistry registry) {
         CircuitBreaker cb = registry.circuitBreaker("psp-gamma");
-        return new HttpPspClient("psp-gamma", "PSP Gamma", pspGammaUrl, cb, 0.15);
+        return new EmbeddedPspClient("psp-gamma", "PSP Gamma", engine, cb);
     }
 }
+

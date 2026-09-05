@@ -4,9 +4,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestClient;
 
-import java.time.Instant;
 import java.util.*;
 
 @RestController
@@ -15,11 +13,11 @@ import java.util.*;
 public class PspController {
 
     private final CircuitBreakerRegistry circuitBreakerRegistry;
-    private final RestClient restClient;
+    private final EmbeddedPspEngine embeddedEngine;
 
-    public PspController(CircuitBreakerRegistry circuitBreakerRegistry) {
+    public PspController(CircuitBreakerRegistry circuitBreakerRegistry, EmbeddedPspEngine embeddedEngine) {
         this.circuitBreakerRegistry = circuitBreakerRegistry;
-        this.restClient = RestClient.builder().build();
+        this.embeddedEngine = embeddedEngine;
     }
 
     public record PspStatusDto(
@@ -43,20 +41,20 @@ public class PspController {
 
     @GetMapping
     public List<PspStatusDto> getPsps() {
-        return List.of(
-                buildPspDto("psp-alpha", "PSP Alpha", "ALPHA", "http://localhost:8081/v1/payments", "ak_live_••••••••90a1", "whsec_••••••••41ef", 1, List.of("EUR", "USD", "GBP"), List.of("Card", "Wallet"), 5.0, 10000.0, 2.1, 120),
-                buildPspDto("psp-beta", "PSP Beta", "BETA", "http://localhost:8082/v1/charges", "ak_live_••••••••33b9", "whsec_••••••••88ac", 2, List.of("EUR", "USD", "SEK"), List.of("Card", "Bank transfer"), 10.0, 50000.0, 60.0, 750),
-                buildPspDto("psp-gamma", "PSP Gamma", "GAMMA", "http://localhost:8083/v2/settle", "ak_live_••••••••74c2", "whsec_••••••••12ff", 3, List.of("GBP", "EUR", "NOK"), List.of("Card", "Bank transfer", "Wallet"), 10.0, 25000.0, 15.0, 250)
-        );
+        List<PspStatusDto> list = new ArrayList<>();
+        for (EmbeddedPspEngine.PspProfile profile : embeddedEngine.getAllProfiles()) {
+            list.add(buildPspDto(profile));
+        }
+        return list;
     }
 
-    private PspStatusDto buildPspDto(String id, String name, String code, String endpoint, String apiKey, String whSec, int priority, List<String> currencies, List<String> methods, double minAmt, double maxAmt, double defaultFailRate, int defaultLatency) {
+    private PspStatusDto buildPspDto(EmbeddedPspEngine.PspProfile profile) {
         String state = "CLOSED";
-        double failRate = defaultFailRate;
-        int latency = defaultLatency;
+        double failRate = profile.getFailureRate();
+        int latency = profile.getAvgLatencyMs();
 
         try {
-            CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker(id);
+            CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker(profile.getId());
             state = cb.getState().name();
             float metricsFailRate = cb.getMetrics().getFailureRate();
             if (metricsFailRate >= 0) {
@@ -64,8 +62,35 @@ public class PspController {
             }
         } catch (Exception ignored) {}
 
+        String apiKey = switch (profile.getId()) {
+            case "psp-beta" -> "ak_live_••••••••33b9";
+            case "psp-gamma" -> "ak_live_••••••••74c2";
+            default -> "ak_live_••••••••90a1";
+        };
+
+        String whSec = switch (profile.getId()) {
+            case "psp-beta" -> "whsec_••••••••88ac";
+            case "psp-gamma" -> "whsec_••••••••12ff";
+            default -> "whsec_••••••••41ef";
+        };
+
         return new PspStatusDto(
-                id, name, code, endpoint, apiKey, whSec, state, failRate, latency, priority, currencies, methods, true, minAmt, maxAmt, "Active"
+                profile.getId(),
+                profile.getName(),
+                profile.getCode(),
+                profile.getEndpoint(),
+                apiKey,
+                whSec,
+                state,
+                failRate,
+                latency,
+                profile.getPriority(),
+                profile.getSupportedCurrencies(),
+                profile.getSupportedMethods(),
+                profile.isEnabled(),
+                profile.getMinAmount(),
+                profile.getMaxAmount(),
+                "Active"
         );
     }
 
@@ -96,22 +121,30 @@ public class PspController {
     public ResponseEntity<Map<String, Object>> configureMockPsp(
             @PathVariable String id,
             @RequestBody Map<String, Object> body) {
-        int port = switch (id) {
-            case "psp-alpha" -> 8081;
-            case "psp-beta" -> 8082;
-            case "psp-gamma" -> 8083;
-            default -> 8081;
-        };
+        Double failureRate = null;
+        Integer latencyMs = null;
+        Boolean enabled = null;
 
-        try {
-            Map<?, ?> response = restClient.post()
-                    .uri("http://localhost:" + port + "/configure")
-                    .body(body)
-                    .retrieve()
-                    .body(Map.class);
-            return ResponseEntity.ok(Map.of("success", true, "mockResponse", response != null ? response : Map.of()));
-        } catch (Exception e) {
-            return ResponseEntity.ok(Map.of("success", false, "note", "Mock offline or configured in-memory: " + e.getMessage()));
+        if (body.containsKey("failureRate")) {
+            failureRate = Double.valueOf(String.valueOf(body.get("failureRate")));
         }
+        if (body.containsKey("avgLatencyMs")) {
+            latencyMs = Integer.valueOf(String.valueOf(body.get("avgLatencyMs")));
+        }
+        if (body.containsKey("enabled")) {
+            enabled = Boolean.valueOf(String.valueOf(body.get("enabled")));
+        }
+
+        embeddedEngine.configureProfile(id, failureRate, latencyMs, enabled);
+
+        EmbeddedPspEngine.PspProfile profile = embeddedEngine.getProfile(id);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "id", id,
+                "failureRate", profile != null ? profile.getFailureRate() : 0,
+                "avgLatencyMs", profile != null ? profile.getAvgLatencyMs() : 0,
+                "enabled", profile != null && profile.isEnabled()
+        ));
     }
 }
+

@@ -21,15 +21,16 @@ public class ReconciliationService {
     private final TransactionRepository txRepository;
     private final ReconRunRepository runRepository;
     private final ReconDiscrepancyRepository discrepancyRepository;
-    private final RestClient restClient;
+    private final com.settleflow.psp.EmbeddedPspEngine embeddedEngine;
 
     public ReconciliationService(TransactionRepository txRepository,
                                  ReconRunRepository runRepository,
-                                 ReconDiscrepancyRepository discrepancyRepository) {
+                                 ReconDiscrepancyRepository discrepancyRepository,
+                                 com.settleflow.psp.EmbeddedPspEngine embeddedEngine) {
         this.txRepository = txRepository;
         this.runRepository = runRepository;
         this.discrepancyRepository = discrepancyRepository;
-        this.restClient = RestClient.builder().build();
+        this.embeddedEngine = embeddedEngine;
     }
 
     public List<ReconRun> getRuns() {
@@ -60,28 +61,11 @@ public class ReconciliationService {
         List<Transaction> dbTransactions = txRepository.findAll();
         Map<String, Map<String, Object>> pspRecords = new HashMap<>();
 
-        // Fetch settlement reports from all 3 PSP mocks
-        int[] ports = {8081, 8082, 8083};
-        String[] pspIds = {"psp-alpha", "psp-beta", "psp-gamma"};
-
-        for (int i = 0; i < ports.length; i++) {
-            try {
-                Map<?, ?> report = restClient.get()
-                        .uri("http://localhost:" + ports[i] + "/settlement-report")
-                        .retrieve()
-                        .body(Map.class);
-
-                if (report != null && report.get("transactions") instanceof List<?> list) {
-                    for (Object item : list) {
-                        if (item instanceof Map<?, ?> txMap) {
-                            String ref = String.valueOf(txMap.get("reference") != null ? txMap.get("reference") : txMap.get("id"));
-                            pspRecords.put(ref, (Map<String, Object>) txMap);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("Could not fetch settlement report from {} on port {}: {}", pspIds[i], ports[i], e.getMessage());
-            }
+        // Fetch settlement reports directly from the in-memory EmbeddedPspEngine
+        List<Map<String, Object>> records = embeddedEngine.getAllSettlementRecords();
+        for (Map<String, Object> item : records) {
+            String ref = String.valueOf(item.get("reference") != null ? item.get("reference") : item.get("id"));
+            pspRecords.put(ref, new HashMap<>(item));
         }
 
         int matchedCount = 0;

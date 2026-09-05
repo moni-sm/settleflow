@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: settleflow-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: CORS_ALLOWED_ORIGIN
+        value: "*"
+      - key: SPRING_DATASOURCE_URL
+        value: "jdbc:h2:mem:settleflow;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+      - key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+        value: "org.h2.Driver"
+      - key: SPRING_JPA_DATABASE_PLATFORM
+        value: "org.hibernate.dialect.H2Dialect"

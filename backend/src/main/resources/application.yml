@@ -21,4 +21,4 @@ spring:
         format_sql: true
 
 cors:
-  allowed-origin: http://localhost:3000
+  allowed-origin: ${CORS_ALLOWED_ORIGIN:*}
