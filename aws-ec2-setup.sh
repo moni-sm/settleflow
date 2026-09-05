@@ -59,19 +59,17 @@ sudo cp /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"
 sudo chown -R "$USER:$USER" "$HOME/.kube"
 export KUBECONFIG="$HOME/.kube/config"
 
-# 4. Clone / Prepare SettleFlow if running fresh
-echo "[4/5] Preparing SettleFlow application..."
-PROJECT_DIR="${1:-$PWD}"
-cd "$PROJECT_DIR"
+# 4. Ensure Docker daemon socket permissions
+sudo chmod 666 /var/run/docker.sock || true
 
 # 5. Build images & Apply Kubernetes Manifests
 echo "[5/5] Deploying SettleFlow to Kubernetes..."
-docker build -t ghcr.io/moni-sm/settleflow-backend:latest ./backend
-docker build -t ghcr.io/moni-sm/settleflow-frontend:latest ./frontend
+sudo docker build -t ghcr.io/moni-sm/settleflow-backend:latest ./backend
+sudo docker build -t ghcr.io/moni-sm/settleflow-frontend:latest ./frontend
 
 # Import local docker images into k3s containerd
-k3s ctr images import <(docker save ghcr.io/moni-sm/settleflow-backend:latest) || true
-k3s ctr images import <(docker save ghcr.io/moni-sm/settleflow-frontend:latest) || true
+sudo docker save ghcr.io/moni-sm/settleflow-backend:latest | sudo k3s ctr images import - || true
+sudo docker save ghcr.io/moni-sm/settleflow-frontend:latest | sudo k3s ctr images import - || true
 
 # Deploy to k8s
 kubectl apply -k k8s/
