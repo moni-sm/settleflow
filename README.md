@@ -7,7 +7,7 @@
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3-brightgreen.svg?logo=springboot)](https://spring.io/projects/spring-boot)
 [![Next.js](https://img.shields.io/badge/Next.js-14_App_Router-black.svg?logo=next.js)](https://nextjs.org/)
 
-> 🚀 **Live Application**: [SettleFlow](https://prefers-ringtone-cet-focus.trycloudflare.com/) *(Preloaded with 1-click demo accounts for Operations & Player Checkout)*
+> 🚀 **Live Application**: [SettleFlow](https://earliest-dad-against-consistency.trycloudflare.com/) *(Preloaded with 1-click demo accounts for Operations & Player Checkout)*
 
 ---
 
