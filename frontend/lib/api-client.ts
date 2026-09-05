@@ -2,7 +2,9 @@
 // Connects to the Spring Boot backend API with graceful offline fallback
 // to ensure seamless local operation in all states.
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  (typeof window !== 'undefined' ? '' : process.env.BACKEND_URL || 'http://localhost:8080');
 
 export type TransactionStatus =
   | 'PENDING'

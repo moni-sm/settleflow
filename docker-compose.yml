@@ -61,7 +61,8 @@ services:
     depends_on:
       - backend
     environment:
-      NEXT_PUBLIC_BACKEND_URL: http://backend:8080
+      BACKEND_URL: http://backend:8080
+      NEXT_PUBLIC_BACKEND_URL: ""
     ports:
       - "3000:3000"
     networks:

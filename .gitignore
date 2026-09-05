@@ -34,3 +34,9 @@ reconciliation/reconciliation_report.json
 *.swo
 .DS_Store
 Thumbs.db
+
+# Keys & Certificates
+*.pem
+*.key
+*.cer
+*.crt

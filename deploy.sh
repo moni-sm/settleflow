@@ -20,8 +20,6 @@ if [[ "$1" != "--deploy-only" ]]; then
     echo -e "[1/3] 🔨 Building Docker container images..."
     docker build -t ghcr.io/moni-sm/settleflow-backend:latest ./backend
     docker build -t ghcr.io/moni-sm/settleflow-frontend:latest ./frontend
-    docker build -t ghcr.io/moni-sm/settleflow-psp-mocks:latest ./psp-mocks
-    docker build -t ghcr.io/moni-sm/settleflow-recon:latest ./reconciliation
     echo -e "\n✅ All Docker images built successfully!"
 fi
 
@@ -35,9 +33,9 @@ kubectl apply -k k8s/
 
 echo -e "\n[3/3] ⏳ Waiting for deployments to become ready..."
 kubectl rollout status deployment/postgres-deployment -n settleflow --timeout=120s
-kubectl rollout status deployment/psp-mocks-deployment -n settleflow --timeout=120s
 kubectl rollout status deployment/backend-deployment -n settleflow --timeout=180s
 kubectl rollout status deployment/frontend-deployment -n settleflow --timeout=180s
+kubectl rollout status deployment/public-tunnel -n settleflow --timeout=90s
 
 echo -e "\n======================================================="
 echo -e "   🎉 SettleFlow Deployed Successfully to Kubernetes!   "

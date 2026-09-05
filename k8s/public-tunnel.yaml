@@ -22,7 +22,7 @@ spec:
             - tunnel
             - --no-autoupdate
             - --url
-            - http://backend-service:8080
+            - http://frontend-service:3000
           resources:
             requests:
               memory: "64Mi"
